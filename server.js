@@ -2,14 +2,14 @@
 
 let express     = require('express')
 let mongoose    = require('mongoose')
-let uuid        = require('uuid')
 let request     = require('request-promise')
 let queryString = require('query-string')
+let Promise     = require('bluebird')
 let secret      = require('./config/secret')
 let data        = require('./src/data')
 
 require('./connect')()
-mongoose.Promise = require('bluebird')
+mongoose.Promise = Promise
 
 let app = express()
 app.use(express.static(__dirname + '/public'))
@@ -44,8 +44,10 @@ app.get('/callback', function(req, res) {
     json: true
   }
   request(authOptions)
-  .then((response, body) => {
-    let id = data.hip(5)
+  .then((response) => {
+    return data.hip(response.access_token)
+  })
+  .then((id) => {
     res.redirect('/hip/' + id)
   })
   .catch((err) => {
