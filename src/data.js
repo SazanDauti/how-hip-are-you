@@ -9,17 +9,22 @@ let secret      = require('../config/secret')
 
 let hip = Promise.method((accessToken) => {
   let userId
-  let playlistIds
   return getUserId(accessToken)
   .then((id) => {
     userId = id
     return getUserPlaylistIds(userId, accessToken)
   })
-  .then((ids) => {
-    return getSongsFromPlaylist(userId, ids[10], accessToken)
+  .then((playlists) => {
+    let songQueries = []
+    playlists.forEach((playlist) => {
+      songQueries.push(getSongsFromPlaylist(playlist.owner, playlist.id, accessToken))
+    })
+    return Promise.all(songQueries)
   })
-  .then((ids) => {
-    console.log(ids)
+  .then((songs) => {
+    songs = _.flatten(songs)
+    songs = _.uniqBy(songs, 'id')
+    console.log(songs.length)
     return userId
   })
 })
@@ -45,13 +50,13 @@ let getUserPlaylistIds = Promise.method((userId, accessToken) => {
       'bearer': accessToken
     }
   }
-  let playlistIds = []
+  let playlists = []
   let hasRemainingPlaylists = false
   return request(getPlaylistsOptions)
   .then(response => {
     response = JSON.parse(response)
     response.items.forEach((item) => {
-      playlistIds.push(item.id)
+      playlists.push({ owner: item.owner.id, id: item.id })
     })
     if (response.next != null) {
       hasRemainingPlaylists = true
@@ -64,17 +69,21 @@ let getUserPlaylistIds = Promise.method((userId, accessToken) => {
       }
       return Promise.all(remainingQueries)
     } else {
-      return playlistIds
+      return playlists
     }
   })
   .then((response) => {
     if (hasRemainingPlaylists) {
-      response.push(playlistIds)
-      playlistIds = _.flatten(response)
+      response.push(playlists)
+      playlists = _.flatten(response)
     }
-    return playlistIds
+    return playlists
   })
   .catch((err) => {
+    if (err.statusCode == 429) {
+      Promise.delay(500)
+      return getUserPlaylistIds(userId, accessToken)
+    }
     return []
   })
 })
@@ -88,12 +97,12 @@ let getRemainingUserPlaylistIds = Promise.method((url, accessToken) => {
   }
   return request(getPlaylistsOptions)
   .then(response => {
-    let playlistIds = []
+    let playlists = []
     response = JSON.parse(response)
     response.items.forEach((item) => {
-      playlistIds.push(item.id)
+      playlists.push({ owner: item.owner.id, id: item.id })
     })
-    return playlistIds
+    return playlists
   })
 })
 
@@ -135,6 +144,10 @@ let getSongsFromPlaylist = Promise.method((userId, playlistId, accessToken) => {
     return songIds
   })
   .catch((err) => {
+    if (err.statusCode == 429) {
+      Promise.delay(500)
+      return getSongsFromPlaylist(userId, playlistId, accessToken)
+    }
     return []
   })
 })
