@@ -16,22 +16,25 @@ let hip = Promise.method((accessToken) => {
     return getUserPlaylistIds(userId, accessToken)
   })
   .then((ids) => {
+    return getSongsFromPlaylist(userId, ids[10], accessToken)
+  })
+  .then((ids) => {
     console.log(ids)
     return userId
   })
 })
 
 let getUserId = Promise.method((accessToken) => {
- let getUserOptions = {
+  let getUserOptions = {
     url: 'https://api.spotify.com/v1/me',
     auth: {
       'bearer': accessToken
     }
- }
- return request(getUserOptions)
- .then(response => {
+  }
+  return request(getUserOptions)
+  .then(response => {
     return JSON.parse(response).id
- })
+  })
 })
 
 let getUserPlaylistIds = Promise.method((userId, accessToken) => {
@@ -71,6 +74,9 @@ let getUserPlaylistIds = Promise.method((userId, accessToken) => {
     }
     return playlistIds
   })
+  .catch((err) => {
+    return []
+  })
 })
 
 let getRemainingUserPlaylistIds = Promise.method((url, accessToken) => {
@@ -88,6 +94,66 @@ let getRemainingUserPlaylistIds = Promise.method((url, accessToken) => {
       playlistIds.push(item.id)
     })
     return playlistIds
+  })
+})
+
+let getSongsFromPlaylist = Promise.method((userId, playlistId, accessToken) => {
+  let limitMax = 100
+  let getSongsOptions = {
+    url: 'https://api.spotify.com/v1/users/' + userId + '/playlists/' + playlistId + '/tracks?limit=100&offset=' + 0,
+    auth: {
+      'bearer': accessToken
+    }
+  }
+  let songIds = []
+  let hasRemainingSongs = false
+  return request(getSongsOptions)
+  .then(response => {
+    response = JSON.parse(response)
+    response.items.forEach((item) => {
+      songIds.push({ id: item.track.id, hip: item.track.popularity })
+    })
+    if (response.next != null) {
+      hasRemainingSongs = true
+      let remainingQueries = []
+      let offset = response.limit
+      while (offset <= response.total) {
+        let url = 'https://api.spotify.com/v1/users/' + userId + '/playlists/' + playlistId + '/tracks?limit=' + limitMax + '&offset=' + offset
+        remainingQueries.push(getRemainingSongs(url, accessToken))
+        offset += limitMax
+      }
+      return Promise.all(remainingQueries)
+    } else {
+      return songIds
+    }
+  })
+  .then((response) => {
+    if (hasRemainingSongs) {
+      response.push(songIds)
+      songIds = _.flatten(response)
+    }
+    return songIds
+  })
+  .catch((err) => {
+    return []
+  })
+})
+
+let getRemainingSongs = Promise.method((url, accessToken) => {
+  let getSongsOptions = {
+    url: url,
+    auth: {
+      'bearer': accessToken
+    }
+  }
+  return request(getSongsOptions)
+  .then(response => {
+    let songIds = []
+    response = JSON.parse(response)
+    response.items.forEach((item) => {
+      songIds.push({ id: item.track.id, hip: item.track.popularity })
+    })
+    return songIds
   })
 })
 
