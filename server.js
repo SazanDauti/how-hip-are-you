@@ -45,7 +45,7 @@ app.get('/callback', function(req, res) {
   }
   request(authOptions)
   .then((response) => {
-    return data.hip(response.access_token)
+    return data.getUserId(response.access_token)
   })
   .then((id) => {
     res.redirect('/hip/' + id)

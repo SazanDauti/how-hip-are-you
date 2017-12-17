@@ -6,14 +6,10 @@ let Promise     = require('bluebird')
 let uuid        = require('uuid')
 let _           = require('lodash')
 let secret      = require('../config/secret')
+let Song        = require('../models/song.js')
 
-let hip = Promise.method((accessToken) => {
-  let userId
-  return getUserId(accessToken)
-  .then((id) => {
-    userId = id
-    return getUserPlaylistIds(userId, accessToken)
-  })
+let hip = Promise.method((accessToken, userId) => {
+  return getUserPlaylistIds(userId, accessToken)
   .then((playlists) => {
     let songQueries = []
     playlists.forEach((playlist) => {
@@ -23,9 +19,28 @@ let hip = Promise.method((accessToken) => {
   })
   .then((songs) => {
     songs = _.flatten(songs)
-    songs = _.uniqBy(songs, 'id')
-    console.log(songs.length)
-    return userId
+    songs = _.uniqBy(songs, 'songId')
+    if (songs.length > 0) {
+      return updateDb(userId, songs)
+    } else {
+      return null
+    }
+  })
+})
+
+let updateDb = Promise.method((userId, songs) => {
+  console.log(songs.length)
+  return Song.remove({
+    user: userId
+  })
+  .then((status) => {
+    return Song.insertMany(songs)
+  })
+  .then((status) => {
+    return
+  })
+  .catch((err) => {
+    console.log(err)
   })
 })
 
@@ -38,7 +53,9 @@ let getUserId = Promise.method((accessToken) => {
   }
   return request(getUserOptions)
   .then(response => {
-    return JSON.parse(response).id
+    response = JSON.parse(response)
+    hip(accessToken, response.id)
+    return response.id
   })
 })
 
@@ -120,7 +137,7 @@ let getSongsFromPlaylist = Promise.method((userId, playlistId, accessToken) => {
   .then(response => {
     response = JSON.parse(response)
     response.items.forEach((item) => {
-      songIds.push({ id: item.track.id, hip: item.track.popularity })
+      songIds.push({ _id: uuid(), songId: item.track.id, user: userId, popularity: item.track.popularity })
     })
     if (response.next != null) {
       hasRemainingSongs = true
@@ -128,7 +145,7 @@ let getSongsFromPlaylist = Promise.method((userId, playlistId, accessToken) => {
       let offset = response.limit
       while (offset <= response.total) {
         let url = 'https://api.spotify.com/v1/users/' + userId + '/playlists/' + playlistId + '/tracks?limit=' + limitMax + '&offset=' + offset
-        remainingQueries.push(getRemainingSongs(url, accessToken))
+        remainingQueries.push(getRemainingSongs(url, accessToken, userId))
         offset += limitMax
       }
       return Promise.all(remainingQueries)
@@ -152,7 +169,7 @@ let getSongsFromPlaylist = Promise.method((userId, playlistId, accessToken) => {
   })
 })
 
-let getRemainingSongs = Promise.method((url, accessToken) => {
+let getRemainingSongs = Promise.method((url, accessToken, userId) => {
   let getSongsOptions = {
     url: url,
     auth: {
@@ -164,12 +181,12 @@ let getRemainingSongs = Promise.method((url, accessToken) => {
     let songIds = []
     response = JSON.parse(response)
     response.items.forEach((item) => {
-      songIds.push({ id: item.track.id, hip: item.track.popularity })
+      songIds.push({ _id: uuid(), songId: item.track.id, user: userId, popularity: item.track.popularity })
     })
     return songIds
   })
 })
 
 module.exports = {
-  hip: hip
+  getUserId: getUserId
 }
