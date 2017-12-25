@@ -8,42 +8,6 @@ let _           = require('lodash')
 let secret      = require('../config/secret')
 let Song        = require('../models/song.js')
 
-let hip = Promise.method((accessToken, userId) => {
-  return getUserPlaylistIds(userId, accessToken)
-  .then((playlists) => {
-    let songQueries = []
-    playlists.forEach((playlist) => {
-      songQueries.push(getSongsFromPlaylist(playlist.owner, playlist.id, accessToken))
-    })
-    return Promise.all(songQueries)
-  })
-  .then((songs) => {
-    songs = _.flatten(songs)
-    songs = _.uniqBy(songs, 'songId')
-    if (songs.length > 0) {
-      return updateDb(userId, songs)
-    } else {
-      return null
-    }
-  })
-})
-
-let updateDb = Promise.method((userId, songs) => {
-  console.log(songs.length)
-  return Song.remove({
-    user: userId
-  })
-  .then((status) => {
-    return Song.insertMany(songs)
-  })
-  .then((status) => {
-    return
-  })
-  .catch((err) => {
-    console.log(err)
-  })
-})
-
 let getUserId = Promise.method((accessToken) => {
   let getUserOptions = {
     url: 'https://api.spotify.com/v1/me',
@@ -56,6 +20,44 @@ let getUserId = Promise.method((accessToken) => {
     response = JSON.parse(response)
     hip(accessToken, response.id)
     return response.id
+  })
+})
+
+let hip = Promise.method((accessToken, userId) => {
+  return getUserPlaylistIds(userId, accessToken)
+  .then((playlists) => {
+    let songQueries = []
+    playlists.forEach((playlist) => {
+      songQueries.push(getSongsFromPlaylist(playlist.owner, playlist.id, accessToken, userId))
+    })
+    return Promise.all(songQueries)
+  })
+  .then((songs) => {
+    songs = _.flatten(songs)
+    songs = _.uniqBy(songs, 'songId')
+    if (songs.length > 0) {
+      return updateDb(userId, songs)
+    } else {
+      return userId
+    }
+  })
+  .then((id) => {
+    return id
+  })
+})
+
+let updateDb = Promise.method((userId, songs) => {
+  return Song.remove({
+    user: userId
+  })
+  .then((status) => {
+    return Song.insertMany(songs)
+  })
+  .then((status) => {
+    return userId
+  })
+  .catch((err) => {
+    console.log(err)
   })
 })
 
@@ -123,7 +125,7 @@ let getRemainingUserPlaylistIds = Promise.method((url, accessToken) => {
   })
 })
 
-let getSongsFromPlaylist = Promise.method((userId, playlistId, accessToken) => {
+let getSongsFromPlaylist = Promise.method((userId, playlistId, accessToken, accountId) => {
   let limitMax = 100
   let getSongsOptions = {
     url: 'https://api.spotify.com/v1/users/' + userId + '/playlists/' + playlistId + '/tracks?limit=100&offset=' + 0,
@@ -137,7 +139,7 @@ let getSongsFromPlaylist = Promise.method((userId, playlistId, accessToken) => {
   .then(response => {
     response = JSON.parse(response)
     response.items.forEach((item) => {
-      songIds.push({ _id: uuid(), songId: item.track.id, user: userId, popularity: item.track.popularity })
+      songIds.push({ _id: uuid(), songId: item.track.id, user: accountId, popularity: item.track.popularity })
     })
     if (response.next != null) {
       hasRemainingSongs = true
@@ -145,7 +147,7 @@ let getSongsFromPlaylist = Promise.method((userId, playlistId, accessToken) => {
       let offset = response.limit
       while (offset <= response.total) {
         let url = 'https://api.spotify.com/v1/users/' + userId + '/playlists/' + playlistId + '/tracks?limit=' + limitMax + '&offset=' + offset
-        remainingQueries.push(getRemainingSongs(url, accessToken, userId))
+        remainingQueries.push(getRemainingSongs(url, accessToken, accountId))
         offset += limitMax
       }
       return Promise.all(remainingQueries)
@@ -169,7 +171,7 @@ let getSongsFromPlaylist = Promise.method((userId, playlistId, accessToken) => {
   })
 })
 
-let getRemainingSongs = Promise.method((url, accessToken, userId) => {
+let getRemainingSongs = Promise.method((url, accessToken, accountId) => {
   let getSongsOptions = {
     url: url,
     auth: {
@@ -181,7 +183,7 @@ let getRemainingSongs = Promise.method((url, accessToken, userId) => {
     let songIds = []
     response = JSON.parse(response)
     response.items.forEach((item) => {
-      songIds.push({ _id: uuid(), songId: item.track.id, user: userId, popularity: item.track.popularity })
+      songIds.push({ _id: uuid(), songId: item.track.id, user: accountId, popularity: item.track.popularity })
     })
     return songIds
   })

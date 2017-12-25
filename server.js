@@ -29,7 +29,7 @@ app.get('/login', (req, res) => {
   )
 })
 
-app.get('/callback', function(req, res) {
+app.get('/callback', (req, res) => {
   let authOptions = {
     method: 'POST',
     url: 'https://accounts.spotify.com/api/token',
@@ -54,6 +54,10 @@ app.get('/callback', function(req, res) {
     console.error(err)
     res.redirect('/error')
   })
+})
+
+app.get('/hip/:id', (req, res) => {
+  res.send(req.params.id)
 })
 
 app.get('/error', (req, res) => {
