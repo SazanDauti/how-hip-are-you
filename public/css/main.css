@@ -20,24 +20,24 @@ html, body {
   font-weight: 500;
 }
 
-.empty1 {
+.empty-1 {
   min-height: 31.5%;
   max-height: 31.5%;
 }
 
-.empty2 {
+.empty-2 {
   min-height: 13%;
   max-height: 13%;
 }
 
-.empty3 {
+.empty-3 {
   min-height: 44%;
   max-height: 44%;
 }
 
 .btn-login {
   color: #ffffff;
-  font-family: Circular,Helvetica,Arial,sans-serif;
+  font-family: Circular, Helvetica, Arial, sans-serif;
   background-color: #1db954;
   display: block;
   width: 100%;

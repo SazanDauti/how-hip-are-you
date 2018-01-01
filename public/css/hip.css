@@ -1,0 +1,20 @@
+
+.data {
+  width: 70%;
+  height: 80%;
+  min-width: 350px;
+  min-height: 400px;
+  position: absolute;
+  left: 0px; 
+  right: 0px;
+  top: 0px;
+  bottom: 0px;
+  margin: auto;
+  overflow: auto;
+  border: 1px solid black;
+}
+
+#data-title {
+  text-align: center;
+  padding-bottom: 10px;
+}

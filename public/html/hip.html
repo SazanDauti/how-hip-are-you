@@ -7,33 +7,24 @@
   <link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css'>
   <link rel='stylesheet' href='../css/loading.css'>
   <link rel='stylesheet' href='../css/main.css'>
+  <link rel='stylesheet' href='../css/hip.css'>
   <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>
-  <script src="../js/progressbar.min.js"></script>
+  <script src='../js/progressbar.min.js'></script>
 </head>
 
 <body>
-
-  <div class="loadingdiv">
-    <div id="loadingbar"></div>
-  </div>
-
-  <script> 
-    $('#loadingdiv').show()
-    var bar = new ProgressBar.Line(loadingbar, { easing: 'easeInOut', strokeWidth: 0.5, duration: 2500, color: '#000000' })
-    bar.animate(1)
-    setTimeout(() => { $('#loadingdiv').hide() }, 2500)
-  </script>
-
-  <div class='content'>
-    <div class='label'>
-      how hip are you?
+  <div id='loading-div'>
+    <div id='loading-tag'>
+      getting data
     </div>
-    <a href='/login' class='btn-login'>
-      LOG IN TO SPOTIFY
-    </a>
+    <div id='loading-bar'></div>
+  </div>
+  <div class='data'>
+    <div id='data-title'></div>
+    <span id='data-text'></span>
   </div>
 
-
+  <script src='../js/hip.js'></script>
   <script src='https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js'></script>
   <script src='https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/js/bootstrap.min.js'></script>
 </body>

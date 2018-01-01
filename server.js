@@ -60,7 +60,7 @@ app.get('/hip/:id', (req, res) => {
   res.sendFile(__dirname + '/public/html/hip.html')
 })
 
-app.get('/data/:id', (req, res) => {
+app.get('/hip/:id/data', (req, res) => {
   return data.getSongPopularity(req.params.id)
   .then((songs) => {
     if (songs.length == 0) {
