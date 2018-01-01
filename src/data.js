@@ -46,6 +46,13 @@ let hip = Promise.method((accessToken, userId) => {
   })
 })
 
+let getSongPopularity = Promise.method((userId) => {
+  return Song.find({ user: userId })
+  .then((result) => {
+    return result
+  })
+})
+
 let updateDb = Promise.method((userId, songs) => {
   return Song.remove({
     user: userId
@@ -190,5 +197,6 @@ let getRemainingSongs = Promise.method((url, accessToken, accountId) => {
 })
 
 module.exports = {
-  getUserId: getUserId
+  getUserId: getUserId,
+  getSongPopularity: getSongPopularity
 }

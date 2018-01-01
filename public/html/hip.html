@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>how hip are you?</title>
+  <meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no'>
+  <link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css'>
+  <link rel='stylesheet' href='../css/loading.css'>
+  <link rel='stylesheet' href='../css/main.css'>
+  <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>
+  <script src="../js/progressbar.min.js"></script>
+</head>
+
+<body>
+
+  <div class="loadingdiv">
+    <div id="loadingbar"></div>
+  </div>
+
+  <script> 
+    $('#loadingdiv').show()
+    var bar = new ProgressBar.Line(loadingbar, { easing: 'easeInOut', strokeWidth: 0.5, duration: 2500, color: '#000000' })
+    bar.animate(1)
+    setTimeout(() => { $('#loadingdiv').hide() }, 2500)
+  </script>
+
+  <div class='content'>
+    <div class='label'>
+      how hip are you?
+    </div>
+    <a href='/login' class='btn-login'>
+      LOG IN TO SPOTIFY
+    </a>
+  </div>
+
+
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js'></script>
+  <script src='https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/js/bootstrap.min.js'></script>
+</body>
+
+</html>

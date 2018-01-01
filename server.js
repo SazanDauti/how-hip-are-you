@@ -15,7 +15,7 @@ let app = express()
 app.use(express.static(__dirname + '/public'))
 
 app.get('/', (req, res) => {
-  res.sendFile(__dirname, 'public/index.html')
+  res.sendFile(__dirname + '/public/html/index.html')
 })
 
 app.get('/login', (req, res) => {
@@ -57,7 +57,18 @@ app.get('/callback', (req, res) => {
 })
 
 app.get('/hip/:id', (req, res) => {
-  res.send(req.params.id)
+  res.sendFile(__dirname + '/public/html/hip.html')
+})
+
+app.get('/data/:id', (req, res) => {
+  return data.getSongPopularity(req.params.id)
+  .then((songs) => {
+    if (songs.length == 0) {
+      res.send('This user has not gotten his data yet.')
+    } else {
+      res.send(songs)
+    }
+  })
 })
 
 app.get('/error', (req, res) => {
