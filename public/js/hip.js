@@ -59,11 +59,11 @@ let plotData = (songs) => {
   graph.append('text')
     .attr('text-anchor', 'middle')
     .attr('transform', 'translate('+ (18) +','+(height/2)+')rotate(-90)')
-    .text('song popularity');
+    .text('number of songs');
   graph.append('text')
     .attr('text-anchor', 'middle')
     .attr('transform', 'translate('+ (width/2) +','+(height-(10))+')')
-    .text('number of songs');
+    .text('song popularity');
 }
 
 let setupDataView = (songs) => {
